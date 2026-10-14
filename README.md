@@ -213,8 +213,8 @@ Olist-Data-Warehouse/
 ### Product Performance
 ![Product Performance](PowerBI_ScShots/14-Dashboard-Products-Performance.png)
 
-### Anomalies Detection
-![Anomalies](PowerBI_ScShots/15-Dashboard-Anomalies.png)
+### Data Integration
+![Data Integration](Docs/5-Data-Integration-Diagram.png)
 
 ### Orders Details
 ![Orders Details](PowerBI_ScShots/16-Dashboard-Orders-Details.png)

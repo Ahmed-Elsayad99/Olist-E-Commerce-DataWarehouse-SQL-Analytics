@@ -187,9 +187,10 @@ Olist-Data-Warehouse/
 │   ├── Bronze/
 │   ├── Silver/
 │   ├── Gold/
-│   └── Data_Quality/
+|   ├── Data_Quality/
+│   └── SQL_Business_Analysis/
 │
-├── screenshots/
+├── Docs/
 │   ├── Architecture/
 │   ├── ETL/
 │   ├── Data_Model/
@@ -200,7 +201,7 @@ Olist-Data-Warehouse/
 
 *The directory names above are illustrative. Refer to the actual repository structure for the exact locations of the project files.*
 
-## Dashboard Preview
+## Docs
 ### Data Flow in SSIS
 ![Data Flow in SSIS](Docs/1-Data-Flow-in-SSIS.png)
 

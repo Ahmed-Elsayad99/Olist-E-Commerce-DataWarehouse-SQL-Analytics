@@ -201,29 +201,23 @@ Olist-Data-Warehouse/
 *The directory names above are illustrative. Refer to the actual repository structure for the exact locations of the project files.*
 
 ## Dashboard Preview
-### Data Flow
-![Data Flow](Docs/1.Data Flow in SSIS.png)
+### Data Flow in SSIS
+![Data Flow in SSIS](Docs/1-Data-Flow-in-SSIS.png)
 
-### Bronze Layer job
-![Bronze Layer job](Docs/2-Job_to_Load_Data_form_Source_to_Bronze_Layer.png)
+### Bronze Layer Job
+![Bronze Layer job](Docs/2-Job-to-Load-Data-form-Source-to-Bronze-Layer.png)
 
-### Customer Behavior
-![Customers Behavior](PowerBI_ScShots/13-Dashboard-Customers-Behavior.png)
+### ETL Pipelines Steps
+![ETL Pipelines Steps](Docs/3-ETL-Steps-in-Job.png)
 
-### Product Performance
-![Product Performance](PowerBI_ScShots/14-Dashboard-Products-Performance.png)
+### Data Flow Diagram
+![Data Flow Diagram](Docs/4-Data-Flow-Diagram.png)
 
 ### Data Integration
 ![Data Integration](Docs/5-Data-Integration-Diagram.png)
 
-### Orders Details
-![Orders Details](PowerBI_ScShots/16-Dashboard-Orders-Details.png)
-
-### Customers Details
-![Customers Details](PowerBI_ScShots/17-Dashboard-Customers-Details.png)
-
 ### Data Model
-![Data Model](PowerBI_ScShots/18-Dashboard-Data-Model.png)
+![Data Model](Docs/6-Data-Model-Diagram.png)
 
 
 ## 🚀 How to Explore the Project

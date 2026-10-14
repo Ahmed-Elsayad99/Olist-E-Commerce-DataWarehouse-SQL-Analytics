@@ -205,7 +205,7 @@ Olist-Data-Warehouse/
 ![Data Flow](Docs/1.Data Flow in SSIS.png)
 
 ### Bronze Layer job
-![Bronze Layer job](PowerBI_ScShots/12-Dashboard-Executive-Summary.png)
+![Bronze Layer job](Docs/2-Job_to_Load_Data_form_Source_to_Bronze_Layer.png)
 
 ### Customer Behavior
 ![Customers Behavior](PowerBI_ScShots/13-Dashboard-Customers-Behavior.png)

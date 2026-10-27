@@ -70,28 +70,41 @@ WITH Geo_Location As (
                city
            ORDER BY
               geo_location_sk 
-        ) As n
+        ) As gn
     from olist_dwh.gold.dim_geo_location
+),
+Ranked_Customers As(
+    select
+        customer_unique_id,
+        customer_zip_code_prefix,
+        customer_city,
+        customer_state,
+        dwh_create_date,
+        ROW_NUMBER() OVER(
+            PARTITION BY customer_unique_id
+            ORDER BY customer_id
+        ) AS cn
+    from olist_dwh.silver.crm_customers
+    where customer_unique_id IS NOT NULL
 )
 
 INSERT INTO olist_dwh.gold.dim_customers (
-    customer_id,
     customer_unique_id,
     geo_location_sk,
     create_date
     )
 
 SELECT
-    c.customer_id,
     c.customer_unique_id,
     COALESCE(l.geo_location_sk, 0) As geo_location_sk,
     c.dwh_create_date
-FROM olist_dwh.silver.crm_customers c
+FROM Ranked_Customers c
 LEFT JOIN Geo_Location l
     ON c.customer_zip_code_prefix = l.zip_code_prefix
     AND c.customer_city = l.city
     AND c.customer_state = l.state
-    AND l.n = 1;
+    AND l.gn = 1
+where c.cn = 1;
 
 
 -- ================================================================================================== --
@@ -213,8 +226,10 @@ SELECT
 	CAST(o.order_delivered_customer_date AS DATE) AS delivered_customer_date,
     o.dwh_create_date
 FROM olist_dwh.silver.erp_orders o
+LEFT JOIN olist_dwh.silver.crm_customers sc
+    on o.customer_id = sc.customer_id 
 LEFT JOIN olist_dwh.gold.dim_customers c
-    on o.customer_id = c.customer_id ;
+    on sc.customer_unique_id = c.customer_unique_id;
 
 
 -- ================================================================================================== --
@@ -311,6 +326,166 @@ SELECT
 FROM olist_dwh.silver.erp_order_payments op
 LEFT JOIN olist_dwh.gold.dim_orders o
     ON  op.order_id = o.order_id;
+
+
+
+
+-- ================================================================================================== --
+
+Print '-----------------------------------------------------';
+Print 'Loading Customers RFM Table';
+Print '-----------------------------------------------------';
+
+
+Print 'Truncating Table: olist_dwh.gold.customers_rfm';
+Truncate Table olist_dwh.gold.customers_rfm;
+Print 'Inserting Data Into: olist_dwh.gold.customers_rfm';
+
+WITH Payment_Per_Order AS (
+    SELECT
+        order_sk,
+        SUM(payment_value) AS Order_Monetary
+    FROM olist_dwh.gold.fact_order_payments
+    GROUP BY order_sk
+),
+
+Reference_Date AS (
+    SELECT
+        MAX(purchase_date) AS Last_Date
+    FROM olist_dwh.gold.dim_orders
+),
+
+Customer_Status AS (
+    SELECT
+        c.customer_unique_id,
+        MAX(o.purchase_date) AS Last_Order_Date,
+        MAX(rd.Last_Date) AS Last_Date,
+
+        DATEDIFF(
+            DAY,
+            MAX(o.purchase_date),
+            MAX(rd.Last_Date)
+        ) AS Recency,
+
+        COUNT(DISTINCT o.order_sk) AS Frequency,
+
+        SUM(ppo.Order_Monetary) AS Monetary
+
+    FROM olist_dwh.gold.dim_orders AS o
+
+    INNER JOIN olist_dwh.gold.dim_customers AS c
+        ON o.customer_sk = c.customer_sk
+
+    LEFT JOIN Payment_Per_Order AS ppo
+        ON o.order_sk = ppo.order_sk
+
+    CROSS JOIN Reference_Date AS rd
+
+    GROUP BY
+        c.customer_unique_id
+),
+
+RFM_Score AS (
+    SELECT
+        customer_unique_id,
+        Last_Order_Date,
+        Recency,
+        Frequency,
+        Monetary,
+
+        CASE
+            WHEN Recency <= 60 THEN 5
+            WHEN Recency <= 90 THEN 4
+            WHEN Recency <= 150 THEN 3
+            WHEN Recency <= 365 THEN 2
+            ELSE 1
+        END AS R_Score,
+
+        CASE
+            WHEN Frequency <= 1 THEN 1
+            WHEN Frequency = 2 THEN 2
+            WHEN Frequency = 3 THEN 3
+            WHEN Frequency = 4 THEN 4
+            ELSE 5
+        END AS F_Score,
+
+        CASE
+            WHEN Monetary <= 100 THEN 1
+            WHEN Monetary <= 200 THEN 2
+            WHEN Monetary <= 500 THEN 3
+            WHEN Monetary <= 1000 THEN 4
+            ELSE 5
+        END AS M_Score
+
+    FROM Customer_Status
+),
+Segmented_Customers As(
+    SELECT
+        customer_unique_id,
+        Last_Order_Date,
+        Recency,
+        Frequency,
+        Monetary,
+        R_Score,
+        F_Score,
+        M_Score,
+
+        CONCAT(
+            R_Score,
+            F_Score,
+            M_Score
+        ) AS RFM_Score,
+
+        CASE
+            WHEN R_Score = 5 AND F_Score = 1
+                THEN 'New'
+
+            WHEN R_Score = 5 AND (F_Score >= 3 OR M_Score >= 4)
+                THEN 'VIP'
+
+            WHEN R_Score >= 4 AND (F_Score >= 2 OR M_Score >= 3)
+                THEN 'Loyal'
+
+            WHEN R_Score >= 3
+                THEN 'Regular'
+
+            WHEN R_Score = 2
+                THEN 'At Risk'
+
+            WHEN R_Score = 1
+                THEN 'Lost'
+
+            ELSE 'Regular'
+        END AS Customer_Segment
+
+    FROM RFM_Score
+)
+
+INSERT INTO olist_dwh.gold.customers_rfm (
+            customer_unique_id,
+            last_order_date,
+            recency,
+            frequency,
+            monetary,
+            r_score,
+            f_score,
+            m_score,
+            rfm_score,
+            customer_segment
+        )
+        SELECT
+            customer_unique_id,
+            CAST(last_order_date AS DATE),
+            recency,
+            frequency,
+            monetary,
+            r_score,
+            f_score,
+            m_score,
+            RFM_Score,
+            customer_segment
+
+        FROM Segmented_Customers;
 
 
 END;

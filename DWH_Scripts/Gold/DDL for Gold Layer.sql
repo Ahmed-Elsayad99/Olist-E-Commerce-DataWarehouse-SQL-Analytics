@@ -154,7 +154,7 @@ CREATE TABLE olist_dwh.gold.fact_order_payments (
 -- =============================================================================
 
 CREATE TABLE olist_dwh.gold.customers_rfm (
-    customer_unique_id VARCHAR(50) Primary Key,
+    customer_sk BIGINT Primary Key,
     last_order_date DATE,
     recency INT,
     frequency INT,

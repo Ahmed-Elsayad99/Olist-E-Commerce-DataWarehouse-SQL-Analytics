@@ -357,7 +357,7 @@ Reference_Date AS (
 
 Customer_Status AS (
     SELECT
-        c.customer_unique_id,
+        c.customer_sk,
         MAX(o.purchase_date) AS Last_Order_Date,
         MAX(rd.Last_Date) AS Last_Date,
 
@@ -382,12 +382,12 @@ Customer_Status AS (
     CROSS JOIN Reference_Date AS rd
 
     GROUP BY
-        c.customer_unique_id
+        c.customer_sk
 ),
 
 RFM_Score AS (
     SELECT
-        customer_unique_id,
+        customer_sk,
         Last_Order_Date,
         Recency,
         Frequency,
@@ -421,7 +421,7 @@ RFM_Score AS (
 ),
 Segmented_Customers As(
     SELECT
-        customer_unique_id,
+        customer_sk,
         Last_Order_Date,
         Recency,
         Frequency,
@@ -462,7 +462,7 @@ Segmented_Customers As(
 )
 
 INSERT INTO olist_dwh.gold.customers_rfm (
-            customer_unique_id,
+            customer_sk,
             last_order_date,
             recency,
             frequency,
@@ -474,7 +474,7 @@ INSERT INTO olist_dwh.gold.customers_rfm (
             customer_segment
         )
         SELECT
-            customer_unique_id,
+            customer_sk,
             CAST(last_order_date AS DATE),
             recency,
             frequency,

@@ -35,7 +35,6 @@ CREATE TABLE olist_dwh.gold.dim_geo_location (
 
 CREATE TABLE olist_dwh.gold.dim_customers (
     customer_sk BIGINT IDENTITY(1,1) PRIMARY KEY,
-    customer_id VARCHAR(50),
     customer_unique_id VARCHAR(50),
     geo_location_sk BIGINT,
     create_date DATETIME
@@ -147,6 +146,24 @@ CREATE TABLE olist_dwh.gold.fact_order_payments (
     payment_installments INT,
     payment_value DECIMAL(10,2),
     create_date DATETIME
+);
+
+
+-- =============================================================================
+-- Create olist_dwh.gold.Customers_RFM
+-- =============================================================================
+
+CREATE TABLE olist_dwh.gold.customers_rfm (
+    customer_unique_id VARCHAR(50) Primary Key,
+    last_order_date DATE,
+    recency INT,
+    frequency INT,
+    monetary DECIMAL(18,2) NULL,
+    r_score INT,
+    f_score INT,
+    m_score INT,
+    rfm_score CHAR(3),
+    customer_segment VARCHAR(20),
 );
 
 

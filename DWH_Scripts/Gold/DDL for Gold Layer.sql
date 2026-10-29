@@ -164,6 +164,7 @@ CREATE TABLE olist_dwh.gold.customers_rfm (
     m_score INT,
     rfm_score CHAR(3),
     customer_segment VARCHAR(20),
+    Repeat_OneTime VARCHAR(20)
 );
 
 

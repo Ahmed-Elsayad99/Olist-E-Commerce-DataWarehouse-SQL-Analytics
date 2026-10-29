@@ -456,7 +456,12 @@ Segmented_Customers As(
                 THEN 'Lost'
 
             ELSE 'Regular'
-        END AS Customer_Segment
+        END AS Customer_Segment,
+
+        CASE
+            WHEN Frequency > 1 THEN 'Repeat Customer'
+            Else 'One Time Customer'
+        END As Repeat_OneTime
 
     FROM RFM_Score
 )
@@ -471,7 +476,8 @@ INSERT INTO olist_dwh.gold.customers_rfm (
             f_score,
             m_score,
             rfm_score,
-            customer_segment
+            customer_segment,
+			Repeat_OneTime
         )
         SELECT
             customer_sk,
@@ -483,7 +489,8 @@ INSERT INTO olist_dwh.gold.customers_rfm (
             f_score,
             m_score,
             RFM_Score,
-            customer_segment
+            customer_segment,
+			Repeat_OneTime
 
         FROM Segmented_Customers;
 

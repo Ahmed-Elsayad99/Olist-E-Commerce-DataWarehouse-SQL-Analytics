@@ -1,5 +1,10 @@
 # Olist E-Commerce Data Warehouse & Analytics
 
+![SQL Server](https://img.shields.io/badge/SQL%20Server-CC292B?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
+![SSIS](https://img.shields.io/badge/SSIS-0078D4?style=for-the-badge&logo=microsoft&logoColor=white)
+![T-SQL](https://img.shields.io/badge/T--SQL-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power%20BI-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)
+
 An end-to-end data warehousing and analytics project built using Microsoft SQL Server, SSIS, T-SQL, and Power BI technologies. The project transforms raw e-commerce data into a structured analytical data warehouse to support business analysis and data-driven decision-making.
 
 ## 📌 Project Overview
@@ -92,37 +97,69 @@ The model includes dimension tables and fact tables designed to support differen
 
 The model supports analysis across customer, order, product, seller, geographic, payment, and review dimensions.
 
-## 🔄 ETL Pipeline
+## 🔄 ETL Pipeline & Data Transformation
 
-The ETL process is organized into three major stages:
+The ETL process is organized into three major stages, orchestrated seamlessly using SSIS, T-SQL, and SQL Server Agent:
 
-1. **Extract and Load:** Ingest source data into the Bronze Layer using SSIS.
-2. **Transform:** Clean, validate, and transform data in the Silver Layer using T-SQL.
-3. **Load and Prepare:** Populate the Gold Layer using SQL transformation logic and stored procedures.
+1. **Extract and Load (Bronze Layer):** Ingest raw source data (CSV and transactional databases) into the Bronze Layer using SSIS packages with minimal transformation to preserve raw data integrity.
+2. **Transform & Cleanse (Silver Layer):** Execute robust T-SQL stored procedures (`silver.load_silver`) to clean, standardize, and transform raw data. Key operations include:
+   - **Data Normalization & Cleaning:** Trimming whitespace, removing rogue quotes (`"`), standardizing text to UPPERCASE, and mapping inconsistent state abbreviations to full names.
+   - **Date & Sequence Validation:** Handling complex overlapping order timestamps and establishing logical chronological order for purchases, approvals, and deliveries.
+   - **Duplicate Elimination:** Using Window Functions (`ROW_NUMBER()` with `PARTITION BY`) to filter out duplicate records (e.g., in customer reviews and orders).
+3. **Load and Prepare (Gold Layer):** Populate the business-oriented dimensional model (Fact and Dimension tables) to support analytical queries and reporting.
 
-SQL Server Agent is used to execute the scheduled ETL workflow.
+SQL Server Agent automates and schedules the entire workflow, ensuring clean separation between ingestion, transformation, and modeling.
 
-The pipeline separates data ingestion from transformation and analytical modeling, making the process easier to maintain, validate, and troubleshoot.
+---
+
+## 💻 Featured ETL Transformation Script (Silver Layer)
+
+Below is an excerpt from the stored procedure demonstrating data cleaning, chronological date validation, and duplicate removal using T-SQL:
+
+```sql
+-- Example: Handling Order Timestamps Logic & Removing Duplicates in Reviews
+WITH cleaned_a AS (
+    SELECT 
+        UPPER(REPLACE(TRIM(order_id), '"','')) as order_id,
+        UPPER(REPLACE(TRIM(customer_id), '"','')) as customer_id,
+        UPPER(TRIM(order_status)) as order_status,
+        -- Complex timestamp cleaning and sequencing logic...
+        order_purchase_timestamp,
+        order_approved_at,
+        order_delivered_carrier_date,
+        order_delivered_customer_date,
+        order_estimated_delivery_date
+    FROM olist_dwh.bronze.erp_Orders
+)
+-- Removing Duplicates using Window Functions in Reviews
+INSERT INTO olist_dwh.silver.erp_order_reviews (...)
+SELECT review_id, order_id, review_score, ...
+FROM (
+    SELECT 
+        UPPER(REPLACE(TRIM(review_id), '"', '')) AS review_id,
+        UPPER(REPLACE(TRIM(order_id), '"', '')) AS order_id,
+        review_score,
+        COALESCE(review_comment_message, 'n/a') AS review_comment_message,
+        ROW_NUMBER() OVER (
+            PARTITION BY UPPER(REPLACE(TRIM(order_id), '"', '')) 
+            ORDER BY review_creation_date DESC, review_id
+        ) AS rn
+    FROM olist_dwh.bronze.erp_order_reviews
+) AS ranked_reviews
+WHERE rn = 1;
+```
 
 ## 📊 Data Validation & Quality Assurance
 
-Data quality validation is an important part of this project.
+Data quality validation is an essential pillar of this project, ensuring that analytical results remain reliable, consistent, and trustworthy across all pipeline layers.
 
-The validation process includes comparing source, Bronze, Silver, and Gold record counts to identify discrepancies and ensure that data transformations behave as expected.
-
-Additional checks investigate:
-
-* Missing records between orders, order items, and payments.
-* Duplicate records in source entities.
-* Missing delivery timestamps.
-* Missing product category information.
-* Incomplete customer geographic mappings.
-* Unusual product return patterns.
-* Differences between item-level revenue and payment-level values.
-
-These checks help distinguish ETL-related issues from inconsistencies already present in the source data.
-
-Where source entities do not align perfectly, the findings are documented so that analytical limitations can be understood rather than silently ignored.
+* **Record Count Reconciliation:** Systematically comparing record counts across Source, Bronze, Silver, and Gold layers to ensure zero unintentional data loss during ETL operations.
+* **Integrity & Consistency Validation:**
+  - Investigating structural gaps and missing relationships between orders, order items, and payment entities.
+  - Resolving null delivery timestamps, unmapped product categories, and incomplete customer geolocation prefixes.
+  - Reconciling item-level revenue against aggregate payment values to identify pricing and transaction discrepancies.
+  - Detecting and deduplicating raw source records using advanced window functions.
+* **Source-Level Anomaly Documentation:** Documenting inherent source data anomalies (such as orders with payments but missing item records) rather than silently dropping them, ensuring complete transparency for downstream analytics.
 
 ## 📈 Business Analysis
 
@@ -174,29 +211,31 @@ These findings illustrate how data warehousing and SQL analysis can convert oper
 
 ## 📁 Repository Structure
 
-The repository contains the SQL scripts and supporting screenshots used to document the data warehouse implementation and analytical work.
+The repository contains the SQL scripts, documentation diagrams, analytical queries, and presentation assets structure as follow:
 
-A suggested structure is:
 
 ```text
 Olist-Data-Warehouse/
 │
 ├── README.md
+├── Presentation/
 │
-├── scripts/
+├── DWH_Scripts/
 │   ├── Bronze/
 │   ├── Silver/
-│   ├── Gold/
-|   ├── Data_Quality/
-│   └── SQL_Business_Analysis/
+│   └── Gold/
 │
 ├── Docs/
-│   ├── Architecture/
-│   ├── ETL/
-│   ├── Data_Model/
-│   └── Business_Insights/
+│   ├── Data Flow in SSIS/
+│   ├── ETL Steps in Job/
+│   ├── Data flow Diagram/
+│   ├── Data Integration Diagram/
+│   └── Data Model (Galaxy Schema)/
 │
-└── ...
+└── SQL-Analytics/
+    ├── EDA/
+    └── Advanced Analytics/
+
 ```
 
 *The directory names above are illustrative. Refer to the actual repository structure for the exact locations of the project files.*

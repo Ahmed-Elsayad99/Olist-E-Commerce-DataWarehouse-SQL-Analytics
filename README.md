@@ -257,7 +257,7 @@ Please refer to the original dataset documentation and licensing terms before re
 
 **Ahmed Elsayad**
 
-Data Analutics Engineering | BI Developer
+Data & Analytics Engineering | BI Developer
 
 Interested in building reliable data pipelines, designing analytical data models, and transforming raw data into meaningful business insights.
 

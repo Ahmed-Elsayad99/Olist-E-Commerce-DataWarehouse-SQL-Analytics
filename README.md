@@ -261,8 +261,8 @@ Data & Analytics Engineering | BI Developer
 
 Interested in building reliable data pipelines, designing analytical data models, and transforming raw data into meaningful business insights.
 
-* GitHub: [Add your GitHub profile link here.](https://github.com/Ahmed-Elsayad99)
-* LinkedIn: linkedin.com/in/ahmed-elsayad-620912359.
+* GitHub: (https://github.com/Ahmed-Elsayad99)
+* LinkedIn: [linkedin.com/in/ahmed-elsayad-620912359](https://www.linkedin.com/in/ahmed-elsayad-620912359/).
 
 ---
 

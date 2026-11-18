@@ -168,6 +168,20 @@ SELECT
     dwh_create_date
 FROM olist_dwh.silver.csv_product_categories;
 
+
+INSERT INTO gold.dim_product_categories (
+    product_category_id,
+    product_category_name,
+    product_category_name_english,
+    create_date
+)
+VALUES (
+    0,
+    'unknown',
+    'unknown',
+    GETDATE()
+);
+
 -- ================================================================================================== --
 
 Print 'Truncating Table: olist_dwh.gold.dim_products';
@@ -195,6 +209,12 @@ SELECT
 FROM olist_dwh.silver.csv_products p
 LEFT JOIN olist_dwh.gold.dim_product_categories pc
     ON  p.product_category_name = pc.product_category_name;
+
+
+UPDATE gold.dim_products
+SET product_category_id = 0
+WHERE product_category_id IS NULL;
+
 
 -- ================================================================================================== --
 
